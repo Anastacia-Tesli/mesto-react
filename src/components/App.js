@@ -77,13 +77,15 @@ function App() {
     .then((info) => {
       setCurrentUser(info)
     })
+    .then(() => {
+      closeAllPopups()
+    })
     .catch((err) => {
       console.log(`Ошибка: ${err}`);
     })
     .finally(() => {
       setIsLoading(false)
     })
-    closeAllPopups()
   }
 
   function handleUpdateAvatar(data) {
@@ -92,79 +94,88 @@ function App() {
     .then((info) => {
       setCurrentUser(info)
     })
+    .then(() => {
+      closeAllPopups()
+    })
     .catch((err) => {
       console.log(`Ошибка: ${err}`);
     })
     .finally(() => {
       setIsLoading(false)
     })
-    closeAllPopups()
   }
 
   // Карточки
 
   const [cards, setCards] = React.useState([]);
-    React.useEffect(() => {
-      api.getInitialCards()
-      .then((initialCards) => {
-        setCards(initialCards)
+  React.useEffect(() => {
+    api.getInitialCards()
+    .then((initialCards) => {
+      setCards(initialCards)
+    })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`);
+    })
+  }, []);
+
+  function handleCardLike(card) {
+    const isLiked = card.likes.some((like) => like._id === currentUser._id);
+    if (!isLiked) {
+      api.putLike(card._id)
+      .then((like) => {
+        setCards((state) => state.map((c) => c._id === card._id ? like : c))
       })
       .catch((err) => {
         console.log(`Ошибка: ${err}`);
       })
-    }, []);
-    function handleCardLike(card) {
-      const isLiked = card.likes.some((like) => like._id === currentUser._id);
-      if (!isLiked) {
-        api.putLike(card._id)
-        .then((newCard) => {
-          setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-        })
-        .catch((err) => {
-          console.log(`Ошибка: ${err}`);
-        })
-      } else {
-        api.deleteLike(card._id)
-        .then((newCard) => {
-          setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-        })
-        .catch((err) => {
-          console.log(`Ошибка: ${err}`);
-        })
-      }
-    };
-    function handleCardDelete(card) {
-      setIsLoading(true)
-        api.deleteCard(card._id)
-        .then(() => {
-          setCards((cards) => {
-            cards.filter((item) => {
-              return item != card
-            })
-          })
-        })
-        .catch((err) => {
-          console.log(`Ошибка: ${err}`);
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
-        closeAllPopups()
+    } else {
+      api.deleteLike(card._id)
+      .then((like) => {
+        setCards((state) => state.map((c) => c._id === card._id ? like : c))
+      })
+      .catch((err) => {
+        console.log(`Ошибка: ${err}`);
+      })
     }
-    function handleAddPlaceSubmit(data) {
-      setIsLoading(true)
-      api.addCard(data)
-      .then((newCard) => {
-        setCards([newCard, ...cards]); 
-      })
-      .catch((err) => {
-        console.log(`Ошибка: ${err}`);
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
+  };
+
+  function handleCardDelete(card) {
+    setIsLoading(true)
+    api.deleteCard(card._id)
+    .then(() => {
+      setCards(cards.filter((item) => {
+          return item !== card
+        })
+      )
+    })
+    .then(() => {
       closeAllPopups()
-    }
+    })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`)
+    })
+    .finally(() => {
+      setIsLoading(false)
+    })
+  }
+
+  function handleAddPlaceSubmit(data) {
+    setIsLoading(true)
+    api.addCard(data)
+    .then((newCard) => {
+      setCards([newCard, ...cards]); 
+    })
+    .then(() => {
+      closeAllPopups()
+    })
+    .catch((err) => {
+      console.log(`Ошибка: ${err}`)
+    })
+    .finally(() => {
+      setIsLoading(false)
+    })
+  }
+
   return (
     <div className="page">
       <div className="page__container">
